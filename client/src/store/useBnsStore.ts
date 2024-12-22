@@ -14,7 +14,7 @@ const useBnsStore = create<BnsState>()(
       fetchCrimeList: async () => {
         set({ loading: true, error: null });
         try {
-          const response = await fetch(`${API_URL}/table/bns?page=all`);
+          const response = await fetch(`${API_URL}/table/bns/all`);
           if (!response.ok) {
             throw new Error("Failed to fetch crime list");
           }
