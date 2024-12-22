@@ -92,12 +92,12 @@ export const getColumnData = async (req: Request, res: Response) => {
   const { tableName, columnName } = req.params;
 
   try {
-    // Fetch only the specified column and filter out null values
+    // Using 'is null' syntax instead of string comparison
     const { data, error } = await supabase
       .from(tableName)
       .select(columnName)
-      .not(columnName, 'is', null)
-      .filter(columnName, 'neq', null);  // Adding an additional null check
+      .not(columnName, 'is', null);
+    // Removed the redundant .filter() call
 
     if (error) {
       logger.error(`Error fetching column data: ${error.message}`);
@@ -109,8 +109,7 @@ export const getColumnData = async (req: Request, res: Response) => {
     }
 
     // Extract the column values into an array using the column name as a string key
-    const columnData = data.map((row: Record<string, any>) => row[columnName])
-                          .filter(value => value !== null);  // Additional null filter on the results
+    const columnData = data.map((row: Record<string, any>) => row[columnName]);
 
     logger.info(
       `Retrieved ${columnData.length} non-null values from column ${columnName} in table ${tableName}`,

@@ -13,6 +13,14 @@ interface TableResponse {
   data: string[];
 }
 
+interface SectionData {
+  chapterName: string;
+  chapterDescription: string;
+  subChapter: string;
+  sectionNumber: number;
+  sectionContent: string;
+}
+
 interface FormData {
   district: string;
   policeStation: string;
@@ -27,6 +35,9 @@ interface FormData {
   section: string;
   subSection: string;
   act: string;
+  sectionContent: string;
+  chapter: string;
+  subChapter: string;
 }
 
 const InputSection = () => {
@@ -44,6 +55,9 @@ const InputSection = () => {
     section: "",
     subSection: "",
     act: "",
+    sectionContent: "",
+    chapter: "",
+    subChapter: "",
   });
 
   const [districts, setDistricts] = useState<{ label: string; value: string }[]>([]);
@@ -51,89 +65,153 @@ const InputSection = () => {
   const [sections, setSections] = useState<{ label: string; value: string }[]>([]);
   const [subSections, setSubSections] = useState<{ label: string; value: string }[]>([]);
   const [acts, setActs] = useState<{ label: string; value: string }[]>([]);
+  const [sectionsData, setSectionsData] = useState<SectionData[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // Custom styles for react-select
   const customStyles = {
     menu: (provided: any) => ({
       ...provided,
-      maxHeight: '200px', // Set maximum height for dropdown
+      maxHeight: '200px',
     }),
     menuList: (provided: any) => ({
       ...provided,
-      maxHeight: '200px', // Set maximum height for the scrollable area
+      maxHeight: '200px',
     })
   };
 
-  // Fetch data from API
+  // Fetch initial data
   useEffect(() => {
-    // Fetch districts
-    fetch("http://localhost:5000/api/table/db/thana")
-      .then((res) => res.json())
-      .then((response: TableResponse) => {
-        const districts = response.data;
-        setDistricts(districts.map((item: string) => ({ 
+    const fetchInitialData = async () => {
+      setLoading(true);
+      try {
+        const [districtResponse, actsResponse] = await Promise.all([
+          fetch("http://localhost:5000/api/table/db/thana"),
+          fetch("http://localhost:5000/api/table/db/act")
+        ]);
+
+        const [districtData, actsData] = await Promise.all([
+          districtResponse.json(),
+          actsResponse.json()
+        ]);
+
+        setDistricts(districtData.data.map((item: string) => ({ 
           label: item, 
           value: item 
         })));
-      })
-      .catch((error) => {
-        console.error("Error fetching districts:", error);
-        setDistricts([]); 
-      });
-
-    // Fetch acts
-    fetch("http://localhost:5000/api/table/db/act")
-      .then((res) => res.json())
-      .then((response: TableResponse) => {
-        const acts = response.data;
-        setActs(acts.map((item: string) => ({ 
+        
+        setActs(actsData.data.map((item: string) => ({ 
           label: item, 
           value: item 
         })));
-      })
-      .catch((error) => {
-        console.error("Error fetching acts:", error);
-        setActs([]); 
-      });
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+        alert("Failed to load initial data. Please refresh the page.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Fetch sections
-    fetch("/api/sections")
-      .then((res) => res.json())
-      .then((data) => setSections(data.map((item: string) => ({ label: item, value: item }))));
+    fetchInitialData();
   }, []);
 
+  // Fetch police stations when district changes
   useEffect(() => {
-    if (formData.district) {
-      fetch(`http://localhost:5000/api/table/db/${formData.district}`)
-        .then((res) => res.json())
-        .then((response: TableResponse) => {
-          const stations = response.data;
-          setPoliceStations(stations.map((item: string) => ({ 
-            label: item, 
-            value: item 
-          })));
-        })
-        .catch((error) => {
-          console.error("Error fetching police stations:", error);
-          setPoliceStations([]); 
-        });
-    } else {
-      setPoliceStations([]);
-    }
+    const fetchPoliceStations = async () => {
+      if (!formData.district) {
+        setPoliceStations([]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetch(`http://localhost:5000/api/table/db/${formData.district}`);
+        const data = await response.json();
+        setPoliceStations(data.data.map((item: string) => ({ 
+          label: item, 
+          value: item 
+        })));
+      } catch (error) {
+        console.error("Error fetching police stations:", error);
+        setPoliceStations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPoliceStations();
   }, [formData.district]);
-  
+
+  // Fetch sections when act changes
   useEffect(() => {
-    if (formData.section) {
-      fetch(`/api/sub-sections?section=${formData.section}`)
-        .then((res) => res.json())
-        .then((data) => setSubSections(data.map((item: string) => ({ label: item, value: item }))));
-    } else {
-      setSubSections([]);
+    const fetchSectionData = async () => {
+      if (!formData.act) {
+        setSections([]);
+        setSectionsData([]);
+        setFormData(prev => ({
+          ...prev,
+          section: "",
+          sectionContent: "",
+          chapter: "",
+          subChapter: "",
+        }));
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Fetch section numbers and all sections data in parallel
+        const [sectionsResponse, allSectionsResponse] = await Promise.all([
+          fetch(`http://localhost:5000/api/table/${formData.act}/sectionNumber`),
+          fetch(`http://localhost:5000/api/table/${formData.act}/all`)
+        ]);
+
+        const sectionsData = await sectionsResponse.json();
+        const allSectionsData = await allSectionsResponse.json();
+
+        console.log('All Sections Data:', allSectionsData);
+        
+        setSections(sectionsData.data.map((item: string) => ({ 
+          label: item, 
+          value: item 
+        })));
+        setSectionsData(allSectionsData);
+      } catch (error) {
+        console.error("Error fetching section data:", error);
+        setSections([]);
+        setSectionsData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSectionData();
+  }, [formData.act]);
+
+  // Update section details when section changes
+  useEffect(() => {
+    console.log('Current section:', formData.section);
+    console.log('All sections data:', sectionsData);
+    
+    if (formData.section && sectionsData.length > 0) {
+      const sectionInfo = sectionsData.find(
+        item => String(item.sectionNumber) === String(formData.section)
+      );
+      console.log('Found section info:', sectionInfo);
+      
+      if (sectionInfo) {
+        setFormData(prev => ({
+          ...prev,
+          sectionContent: sectionInfo.sectionContent,
+          chapter: sectionInfo.chapterName,
+          subChapter: sectionInfo.subChapter,
+        }));
+      }
     }
-  }, [formData.section]);
+  }, [formData.section, sectionsData]);
 
   const handleSelectChange = (selectedOption: { value: string; label: string } | null, fieldName: keyof FormData) => {
-    setFormData({ ...formData, [fieldName]: selectedOption?.value || "" });
+    console.log(`Changing ${fieldName}:`, selectedOption);
+    setFormData(prev => ({ ...prev, [fieldName]: selectedOption?.value || "" }));
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,9 +219,9 @@ const InputSection = () => {
     
     if (name === 'crimeNumber') {
       const sanitizedValue = value.replace(/[^0-9/]/g, '');
-      setFormData({ ...formData, [name]: sanitizedValue });
+      setFormData(prev => ({ ...prev, [name]: sanitizedValue }));
     } else {
-      setFormData({ ...formData, [name]: value });
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -151,6 +229,7 @@ const InputSection = () => {
     event.preventDefault();
 
     try {
+      setLoading(true);
       const response = await fetch("http://localhost:5000/api/case-entry", {
         method: "POST",
         headers: {
@@ -189,9 +268,14 @@ const InputSection = () => {
         section: "",
         subSection: "",
         act: "",
+        sectionContent: "",
+        chapter: "",
+        subChapter: "",
       });
     } catch (err) {
       alert(`Failed to submit case entry: ${err instanceof Error ? err.message : "Unknown error occurred"}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -199,8 +283,13 @@ const InputSection = () => {
     <div className="min-h-screen bg-gray-50 py-10 flex items-center justify-center">
       <div className="max-w-4xl w-full bg-white shadow-md rounded-lg p-8">
         <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6">Case Details Form</h2>
+        {loading && (
+          <div className="absolute inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Dropdown for District */}
+          {/* District */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
             <Select
@@ -213,7 +302,7 @@ const InputSection = () => {
             />
           </div>
 
-          {/* Dropdown for Police Station */}
+          {/* Police Station */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Police Station</label>
             <Select
@@ -227,7 +316,7 @@ const InputSection = () => {
             />
           </div>
 
-          {/* Text Input for Crime Number */}
+          {/* Crime Number */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Crime Number</label>
             <input
@@ -241,7 +330,7 @@ const InputSection = () => {
             />
           </div>
 
-          {/* Date Inputs */}
+          {/* Dates Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Incident Date</label>
@@ -288,20 +377,20 @@ const InputSection = () => {
             </div>
           </div>
 
-          {/* Dropdowns for Section, Sub Section, and Act */}
+          {/* Act and Section Selection */}
           <div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Act</label>
-              <Select
-                options={acts}
-                value={acts.find((option) => option.value === formData.act)}
-                onChange={(selectedOption) => handleSelectChange(selectedOption, "act")}
-                placeholder="Select Act"
-                className="mt-1"
-                styles={customStyles}
-              />
-            </div>
-            <br />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Act</label>
+            <Select
+              options={acts}
+              value={acts.find((option) => option.value === formData.act)}
+              onChange={(selectedOption) => handleSelectChange(selectedOption, "act")}
+              placeholder="Select Act"
+              className="mt-1"
+              styles={customStyles}
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
             <Select
               options={sections}
@@ -309,64 +398,82 @@ const InputSection = () => {
               onChange={(selectedOption) => handleSelectChange(selectedOption, "section")}
               placeholder="Select Section"
               className="mt-1"
+              isDisabled={!formData.act}
               styles={customStyles}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sub Section</label>
-            <Select
-              options={subSections}
-              value={subSections.find((option) => option.value === formData.subSection)}
-              onChange={(selectedOption) => handleSelectChange(selectedOption, "subSection")}
-              placeholder="Select Sub Section"
-              className="mt-1"
-              isDisabled={!formData.section}
-              styles={customStyles}
-            />
-          </div>
+          {/* Auto-populated fields */}
+          {formData.section && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Chapter</label>
+                <input
+                  type="text"
+                  value={formData.chapter}
+                  readOnly
+                  className="mt-1 block w-full h-12 rounded-md border border-gray-300 bg-gray-50 sm:text-sm px-3"
+                />
+              </div>
 
-          {/* Text Inputs for Total Accused and Arrested */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Total Accused</label>
-              <input
-                type="number"
-                name="totalAccused"
-                value={formData.totalAccused}
-                onChange={handleInputChange}
-                placeholder="Enter Total Accused"
-                min="0"
-                className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Arrested</label>
-              <input
-                type="number"
-                name="arrested"
-                value={formData.arrested}
-                onChange={handleInputChange}
-                placeholder="Enter Arrested"
-                min="0"
-                className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
-              />
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <div>
-            <button
-              type="submit"
-              className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              Submit
-            </button>
-          </div>
-        </form>
-      </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Section Content</label>
+      <textarea
+        value={formData.sectionContent}
+        readOnly
+        className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 sm:text-sm px-3 py-2"
+        rows={3}
+      />
     </div>
-  );
+  </>
+)}
+
+        {/* Total Accused and Arrested */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Total Accused</label>
+            <input
+              type="number"
+              name="totalAccused"
+              value={formData.totalAccused}
+              onChange={handleInputChange}
+              placeholder="Enter Total Accused"
+              min="0"
+              className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Arrested</label>
+            <input
+              type="number"
+              name="arrested"
+              value={formData.arrested}
+              onChange={handleInputChange}
+              placeholder="Enter Arrested"
+              min="0"
+              className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+            />
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full h-12 ${
+              loading 
+                ? 'bg-indigo-400 cursor-not-allowed' 
+                : 'bg-indigo-600 hover:bg-indigo-700'
+            } text-white font-semibold py-2 px-4 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+          >
+            {loading ? 'Submitting...' : 'Submit'}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+);
 };
 
 export default InputSection;
