@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import Select from "react-select";
 
+interface ApiResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+  error?: string;
+}
+
 interface FormData {
   district: string;
   policeStation: string;
@@ -84,9 +91,52 @@ const InputSection = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Submitted Data:", formData);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/case-entry", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          thana: formData.policeStation,
+          incidentDate: formData.incidentDate ? new Date(formData.incidentDate).toISOString() : null,
+          dateOfArrest: formData.firDate ? new Date(formData.firDate).toISOString() : null,
+          chargeSheetReadyDate: formData.csReadyDate ? new Date(formData.csReadyDate).toISOString() : null,
+          chargeSheetFileDate: formData.csFiledDate ? new Date(formData.csFiledDate).toISOString() : null,
+          totalAccused: parseInt(formData.totalAccused) || 0,
+          totalArrested: parseInt(formData.arrested) || 0,
+        }),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.error || responseData.message || "Failed to submit case entry");
+      }
+
+      alert("Case entry submitted successfully!");
+      setFormData({
+        district: "",
+        policeStation: "",
+        crimeNumber: "",
+        incidentDate: "",
+        firDate: "",
+        csReadyDate: "",
+        csFiledDate: "",
+        stage: "",
+        totalAccused: "",
+        arrested: "",
+        section: "",
+        subSection: "",
+        act: "",
+      });
+    } catch (err) {
+      alert(`Failed to submit case entry: ${err instanceof Error ? err.message : "Unknown error occurred"}`);
+    }
   };
 
   return (
@@ -181,6 +231,17 @@ const InputSection = () => {
 
           {/* Dropdowns for Section, Sub Section, and Act */}
           <div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Act</label>
+              <Select
+                options={acts}
+                value={acts.find((option) => option.value === formData.act)}
+                onChange={(selectedOption) => handleSelectChange(selectedOption, "act")}
+                placeholder="Select Act"
+                className="mt-1"
+              />
+            </div>
+            <br />
             <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
             <Select
               options={sections}
@@ -200,17 +261,6 @@ const InputSection = () => {
               placeholder="Select Sub Section"
               className="mt-1"
               isDisabled={!formData.section}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Act</label>
-            <Select
-              options={acts}
-              value={acts.find((option) => option.value === formData.act)}
-              onChange={(selectedOption) => handleSelectChange(selectedOption, "act")}
-              placeholder="Select Act"
-              className="mt-1"
             />
           </div>
 
