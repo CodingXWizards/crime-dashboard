@@ -8,6 +8,11 @@ interface ApiResponse {
   error?: string;
 }
 
+interface TableResponse {
+  column: string;
+  data: string[];
+}
+
 interface FormData {
   district: string;
   policeStation: string;
@@ -47,19 +52,54 @@ const InputSection = () => {
   const [subSections, setSubSections] = useState<{ label: string; value: string }[]>([]);
   const [acts, setActs] = useState<{ label: string; value: string }[]>([]);
 
+  // Custom styles for react-select
+  const customStyles = {
+    menu: (provided: any) => ({
+      ...provided,
+      maxHeight: '200px', // Set maximum height for dropdown
+    }),
+    menuList: (provided: any) => ({
+      ...provided,
+      maxHeight: '200px', // Set maximum height for the scrollable area
+    })
+  };
+
   // Fetch data from API
   useEffect(() => {
-    fetch("/api/districts")
+    // Fetch districts
+    fetch("http://localhost:5000/api/table/db/thana")
       .then((res) => res.json())
-      .then((data) => setDistricts(data.map((item: string) => ({ label: item, value: item }))));
+      .then((response: TableResponse) => {
+        const districts = response.data;
+        setDistricts(districts.map((item: string) => ({ 
+          label: item, 
+          value: item 
+        })));
+      })
+      .catch((error) => {
+        console.error("Error fetching districts:", error);
+        setDistricts([]); 
+      });
 
+    // Fetch acts
+    fetch("http://localhost:5000/api/table/db/act")
+      .then((res) => res.json())
+      .then((response: TableResponse) => {
+        const acts = response.data;
+        setActs(acts.map((item: string) => ({ 
+          label: item, 
+          value: item 
+        })));
+      })
+      .catch((error) => {
+        console.error("Error fetching acts:", error);
+        setActs([]); 
+      });
+
+    // Fetch sections
     fetch("/api/sections")
       .then((res) => res.json())
       .then((data) => setSections(data.map((item: string) => ({ label: item, value: item }))));
-
-    fetch("/api/acts")
-      .then((res) => res.json())
-      .then((data) => setActs(data.map((item: string) => ({ label: item, value: item }))));
   }, []);
 
   useEffect(() => {
@@ -89,9 +129,7 @@ const InputSection = () => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     
-    // Special handling for crimeNumber to only allow numbers and forward slashes
     if (name === 'crimeNumber') {
-      // Replace any character that isn't a number or forward slash
       const sanitizedValue = value.replace(/[^0-9/]/g, '');
       setFormData({ ...formData, [name]: sanitizedValue });
     } else {
@@ -161,6 +199,7 @@ const InputSection = () => {
               onChange={(selectedOption) => handleSelectChange(selectedOption, "district")}
               placeholder="Select District"
               className="mt-1"
+              styles={customStyles}
             />
           </div>
 
@@ -174,6 +213,7 @@ const InputSection = () => {
               placeholder="Select Police Station"
               className="mt-1"
               isDisabled={!formData.district}
+              styles={customStyles}
             />
           </div>
 
@@ -191,7 +231,6 @@ const InputSection = () => {
             />
           </div>
 
-          {/* Rest of the form remains the same... */}
           {/* Date Inputs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -249,6 +288,7 @@ const InputSection = () => {
                 onChange={(selectedOption) => handleSelectChange(selectedOption, "act")}
                 placeholder="Select Act"
                 className="mt-1"
+                styles={customStyles}
               />
             </div>
             <br />
@@ -259,6 +299,7 @@ const InputSection = () => {
               onChange={(selectedOption) => handleSelectChange(selectedOption, "section")}
               placeholder="Select Section"
               className="mt-1"
+              styles={customStyles}
             />
           </div>
 
@@ -271,6 +312,7 @@ const InputSection = () => {
               placeholder="Select Sub Section"
               className="mt-1"
               isDisabled={!formData.section}
+              styles={customStyles}
             />
           </div>
 
