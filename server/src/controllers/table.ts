@@ -17,7 +17,8 @@ export const getTableData = async (req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(tableName)
       .select("*")
-      .range(from, to); // Fetch records based on pagination
+      .range(from, to)
+      .order("id", { ascending: true });
 
     if (error) {
       logger.error(`Error fetching table fields: ${error.message}`);

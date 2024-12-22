@@ -3,6 +3,6 @@ import { Request, Response, Router } from "express";
 
 const router = Router();
 
-router.get("/:tableName/:page", getTableData);
+router.get("/:tableName", getTableData);
 
 export default router;
