@@ -11,7 +11,7 @@ const useBnsStore = create<BnsState>()(
       bnsList: [],
       loading: false,
       error: null,
-      fetchCrimeList: async () => {
+      fetchBnsList: async () => {
         set({ loading: true, error: null });
         try {
           const response = await fetch(`${API_URL}/table/bns/all`);
@@ -25,8 +25,8 @@ const useBnsStore = create<BnsState>()(
         }
       },
     }),
-    { name: "BnsStore" },
-  ),
+    { name: "BnsStore" }
+  )
 );
 
 export default useBnsStore;
