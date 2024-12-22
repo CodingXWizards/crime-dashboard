@@ -88,7 +88,15 @@ const InputSection = () => {
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setFormData({ ...formData, [name]: value });
+    
+    // Special handling for crimeNumber to only allow numbers and forward slashes
+    if (name === 'crimeNumber') {
+      // Replace any character that isn't a number or forward slash
+      const sanitizedValue = value.replace(/[^0-9/]/g, '');
+      setFormData({ ...formData, [name]: sanitizedValue });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -173,15 +181,17 @@ const InputSection = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Crime Number</label>
             <input
-              type="number"
+              type="text"
               name="crimeNumber"
               value={formData.crimeNumber}
               onChange={handleInputChange}
-              placeholder="Enter Crime Number"
+              placeholder="Enter Crime Number (e.g., 123/45)"
+              pattern="[0-9/]*"
               className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
             />
           </div>
 
+          {/* Rest of the form remains the same... */}
           {/* Date Inputs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -269,22 +279,24 @@ const InputSection = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Total Accused</label>
               <input
-                type="text"
+                type="number"
                 name="totalAccused"
                 value={formData.totalAccused}
                 onChange={handleInputChange}
                 placeholder="Enter Total Accused"
+                min="0"
                 className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Arrested</label>
               <input
-                type="text"
+                type="number"
                 name="arrested"
                 value={formData.arrested}
                 onChange={handleInputChange}
                 placeholder="Enter Arrested"
+                min="0"
                 className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
               />
             </div>
