@@ -94,7 +94,7 @@ const InputSection = () => {
       <div className="max-w-4xl w-full bg-white shadow-md rounded-lg p-8">
         <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6">Case Details Form</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Searchable Dropdown for District */}
+          {/* Dropdown for District */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
             <Select
@@ -106,7 +106,7 @@ const InputSection = () => {
             />
           </div>
 
-          {/* Searchable Dropdown for Police Station */}
+          {/* Dropdown for Police Station */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Police Station</label>
             <Select
@@ -156,20 +156,30 @@ const InputSection = () => {
             </div>
           </div>
 
-          {/* Other Fields */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Stage</label>
-            <input
-              type="text"
-              name="stage"
-              value={formData.stage}
-              onChange={handleInputChange}
-              placeholder="Enter Stage"
-              className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CS Ready Date</label>
+              <input
+                type="date"
+                name="csReadyDate"
+                value={formData.csReadyDate}
+                onChange={handleInputChange}
+                className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">CS Filed Date</label>
+              <input
+                type="date"
+                name="csFiledDate"
+                value={formData.csFiledDate}
+                onChange={handleInputChange}
+                className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+              />
+            </div>
           </div>
 
-          {/* Dropdown for Section */}
+          {/* Dropdowns for Section, Sub Section, and Act */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
             <Select
@@ -182,15 +192,52 @@ const InputSection = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Total Accused</label>
-            <input
-              type="text"
-              name="totalAccused"
-              value={formData.totalAccused}
-              onChange={handleInputChange}
-              placeholder="Enter Total Accused"
-              className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sub Section</label>
+            <Select
+              options={subSections}
+              value={subSections.find((option) => option.value === formData.subSection)}
+              onChange={(selectedOption) => handleSelectChange(selectedOption, "subSection")}
+              placeholder="Select Sub Section"
+              className="mt-1"
+              isDisabled={!formData.section}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Act</label>
+            <Select
+              options={acts}
+              value={acts.find((option) => option.value === formData.act)}
+              onChange={(selectedOption) => handleSelectChange(selectedOption, "act")}
+              placeholder="Select Act"
+              className="mt-1"
+            />
+          </div>
+
+          {/* Text Inputs for Total Accused and Arrested */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Total Accused</label>
+              <input
+                type="text"
+                name="totalAccused"
+                value={formData.totalAccused}
+                onChange={handleInputChange}
+                placeholder="Enter Total Accused"
+                className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Arrested</label>
+              <input
+                type="text"
+                name="arrested"
+                value={formData.arrested}
+                onChange={handleInputChange}
+                placeholder="Enter Arrested"
+                className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+              />
+            </div>
           </div>
 
           {/* Submit Button */}
