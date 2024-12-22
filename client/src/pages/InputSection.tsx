@@ -104,14 +104,24 @@ const InputSection = () => {
 
   useEffect(() => {
     if (formData.district) {
-      fetch(`/api/police-stations?district=${formData.district}`)
+      fetch(`http://localhost:5000/api/table/db/${formData.district}`)
         .then((res) => res.json())
-        .then((data) => setPoliceStations(data.map((item: string) => ({ label: item, value: item }))));
+        .then((response: TableResponse) => {
+          const stations = response.data;
+          setPoliceStations(stations.map((item: string) => ({ 
+            label: item, 
+            value: item 
+          })));
+        })
+        .catch((error) => {
+          console.error("Error fetching police stations:", error);
+          setPoliceStations([]); 
+        });
     } else {
       setPoliceStations([]);
     }
   }, [formData.district]);
-
+  
   useEffect(() => {
     if (formData.section) {
       fetch(`/api/sub-sections?section=${formData.section}`)
