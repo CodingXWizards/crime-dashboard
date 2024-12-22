@@ -1,16 +1,15 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import InputSection from "./pages/InputSection";
+import { Routes, Route } from "react-router-dom";
+import InputSection from "@/pages/InputSection";
+import Home from "@/pages/home";
 
 const App = () => {
   return (
-    <Router>
-      <div>
-        <Routes>
-          <Route path="/entry" element={<InputSection />} />
-          <Route path="/" element={<div>Home Page</div>} />
-        </Routes>
-      </div>
-    </Router>
+    <div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/entry" element={<InputSection />} />
+      </Routes>
+    </div>
   );
 };
 
