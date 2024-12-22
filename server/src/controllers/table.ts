@@ -87,3 +87,41 @@ export const getAllTableData = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const getColumnData = async (req: Request, res: Response) => {
+  const { tableName, columnName } = req.params;
+
+  try {
+    // Fetch only the specified column and filter out null values
+    const { data, error } = await supabase
+      .from(tableName)
+      .select(columnName)
+      .not(columnName, 'is', null)
+      .filter(columnName, 'neq', null);  // Adding an additional null check
+
+    if (error) {
+      logger.error(`Error fetching column data: ${error.message}`);
+      return res.status(500).json({ error: error.message });
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: "No data found for the specified column" });
+    }
+
+    // Extract the column values into an array using the column name as a string key
+    const columnData = data.map((row: Record<string, any>) => row[columnName])
+                          .filter(value => value !== null);  // Additional null filter on the results
+
+    logger.info(
+      `Retrieved ${columnData.length} non-null values from column ${columnName} in table ${tableName}`,
+    );
+
+    return res.status(200).json({
+      column: columnName,
+      data: columnData
+    });
+  } catch (err: any) {
+    logger.error(`Error in /db/${columnName}: ${err.message}`);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
