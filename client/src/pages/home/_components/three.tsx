@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from "react";
 import useCrimeStore from "@/store/useCrimeStore";
 
-interface ThanaStats {
-  thana: string;
+interface PoliceStationStats {
+  policeStation: string;
   pendingCount: number;
+}
+
+interface DistrictStats {
+  district: string; // This was previously called thana
+  policeStations: PoliceStationStats[];
+  totalCount: number;
 }
 
 interface MonthlyStats {
   month: string;
   year: number;
-  thanaData: ThanaStats[];
-  totalCount: number;
+  districtData: DistrictStats[];
   periodStart: string;
   periodEnd: string;
 }
@@ -25,12 +30,14 @@ interface PeriodConfig {
 export const Threemonth = () => {
   const { crimeList, fetchCrimeList, loading } = useCrimeStore();
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>("3months");
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
+
+  // Get unique districts from crime list
+  const districts = React.useMemo(() => [...new Set(crimeList.map((crime) => crime.thana))].sort(), [crimeList]);
 
   // Get current year and create year range
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
-
-  // Generate array of years from 2020 to current year
   const availableYears = Array.from({ length: currentYear - 2020 + 1 }, (_, index) => currentYear - index);
 
   const periodOptions: Record<PeriodOption, PeriodConfig> = {
@@ -47,30 +54,46 @@ export const Threemonth = () => {
     const year = selectedYear;
     const month = new Date(year, monthIndex).toLocaleString("default", { month: "long" });
 
-    // Set date range based on selected period
     const endDate = new Date(year, monthIndex + 1, 0);
     const startDate = new Date(year, monthIndex + 1 - periodOptions[selectedPeriod].months, 1);
 
-    // Create thana map to store counts
-    const thanaMap = new Map<string, number>();
+    // First group by district, then by police stations
+    const districtMap = new Map<string, Map<string, number>>();
 
     crimeList.forEach((crime) => {
       const crimeDate = new Date(crime.incidentDate);
 
-      if (crimeDate >= startDate && crimeDate <= endDate && (crime.stage.toLowerCase() === "विवेचना" || crime.stage.toLowerCase() === "चालान तैयार")) {
-        thanaMap.set(crime.thana, (thanaMap.get(crime.thana) || 0) + 1);
+      if (
+        crimeDate >= startDate &&
+        crimeDate <= endDate &&
+        (crime.stage.toLowerCase() === "विवेचना" || crime.stage.toLowerCase() === "चालान तैयार") &&
+        (!selectedDistrict || crime.thana === selectedDistrict)
+      ) {
+        if (!districtMap.has(crime.thana)) {
+          districtMap.set(crime.thana, new Map());
+        }
+
+        const policeStationMap = districtMap.get(crime.thana)!;
+        const policeStation = crime.policeStation || "Unknown"; // Add proper police station field
+        policeStationMap.set(policeStation, (policeStationMap.get(policeStation) || 0) + 1);
       }
     });
 
-    const thanaData = Array.from(thanaMap.entries())
-      .map(([thana, count]) => ({ thana, pendingCount: count }))
-      .sort((a, b) => b.pendingCount - a.pendingCount);
+    const districtData = Array.from(districtMap.entries()).map(([district, stations]) => ({
+      district,
+      policeStations: Array.from(stations.entries())
+        .map(([name, count]) => ({
+          policeStation: name,
+          pendingCount: count,
+        }))
+        .sort((a, b) => b.pendingCount - a.pendingCount),
+      totalCount: Array.from(stations.values()).reduce((sum, count) => sum + count, 0),
+    }));
 
     return {
       month,
       year,
-      thanaData,
-      totalCount: thanaData.reduce((sum, t) => sum + t.pendingCount, 0),
+      districtData,
       periodStart: startDate.toLocaleDateString(),
       periodEnd: endDate.toLocaleDateString(),
     };
@@ -86,17 +109,19 @@ export const Threemonth = () => {
     <section className="bg-white rounded-xl shadow-lg border border-gray-100 basis-1/2">
       <div className="p-6">
         <div className="mb-6">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center flex-wrap gap-4">
             <div>
               <h2 className="text-xl font-semibold text-gray-800">Period-wise Analysis</h2>
+              <p className="text-sm text-gray-600 mt-1">Pending cases by police station (विवेचना + चालान तैयार)</p>
             </div>
             <div className="flex items-center gap-4">
+              {/* Year Selector */}
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
                 className="px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 
                           bg-white text-gray-700 focus:outline-none focus:ring-2 
-                          focus:ring-blue-500 focus:border-transparent min-w-[120px]"
+                          focus:ring-blue-500 focus:border-transparent"
               >
                 {availableYears.map((year) => (
                   <option key={year} value={year}>
@@ -104,6 +129,24 @@ export const Threemonth = () => {
                   </option>
                 ))}
               </select>
+
+              {/* District Selector */}
+              <select
+                value={selectedDistrict}
+                onChange={(e) => setSelectedDistrict(e.target.value)}
+                className="px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 
+                          bg-white text-gray-700 focus:outline-none focus:ring-2 
+                          focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Districts</option>
+                {districts.map((district) => (
+                  <option key={district} value={district}>
+                    {district}
+                  </option>
+                ))}
+              </select>
+
+              {/* Period Selector Buttons */}
               <div className="flex gap-2">
                 {Object.entries(periodOptions).map(([key, { label }]) => (
                   <button
@@ -151,11 +194,22 @@ export const Threemonth = () => {
                 </div>
 
                 <div className="p-4">
-                  <div className="space-y-2">
-                    {stats.thanaData.map((thana) => (
-                      <div key={thana.thana} className="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span className="text-sm font-medium text-gray-700">{thana.thana}</span>
-                        <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">{thana.pendingCount}</span>
+                  <div className="space-y-4">
+                    {stats.districtData.map((district) => (
+                      <div key={district.district} className="space-y-2">
+                        {!selectedDistrict && (
+                          <h4 className="font-medium text-gray-900 border-b pb-1">
+                            {district.district} ({district.totalCount})
+                          </h4>
+                        )}
+                        <div className="space-y-2 pl-2">
+                          {district.policeStations.map((station) => (
+                            <div key={station.policeStation} className="flex justify-between items-center py-1">
+                              <span className="text-sm text-gray-700">{station.policeStation}</span>
+                              <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">{station.pendingCount}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
