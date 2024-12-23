@@ -1,54 +1,78 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import useCrimeStore from "@/store/useCrimeStore";
+
+interface ThanaStats {
+  thana: string;
+  pendingCount: number;
+}
 
 interface MonthlyStats {
   month: string;
   year: number;
-  currentCount: number;
-  lastYearCount: number;
-  difference: number;
-  percentageChange: number;
+  thanaData: ThanaStats[];
+  totalCount: number;
+  periodStart: string;
+  periodEnd: string;
+}
+
+type PeriodOption = "3months" | "6months" | "1year";
+
+interface PeriodConfig {
+  label: string;
+  months: number;
 }
 
 export const Threemonth = () => {
   const { crimeList, fetchCrimeList, loading } = useCrimeStore();
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>("3months");
+
+  // Get current year and create year range
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+
+  // Generate array of years from 2020 to current year
+  const availableYears = Array.from({ length: currentYear - 2020 + 1 }, (_, index) => currentYear - index);
+
+  const periodOptions: Record<PeriodOption, PeriodConfig> = {
+    "3months": { label: "3 Months", months: 3 },
+    "6months": { label: "6 Months", months: 6 },
+    "1year": { label: "1 Year", months: 12 },
+  };
 
   useEffect(() => {
     fetchCrimeList();
   }, [fetchCrimeList]);
 
   const getMonthStats = (monthIndex: number): MonthlyStats => {
-    const year = 2023;
+    const year = selectedYear;
     const month = new Date(year, monthIndex).toLocaleString("default", { month: "long" });
 
-    // Get current year's cases (full year up to the specified month)
-    const currentYearCases = crimeList.filter((crime) => {
+    // Set date range based on selected period
+    const endDate = new Date(year, monthIndex + 1, 0);
+    const startDate = new Date(year, monthIndex + 1 - periodOptions[selectedPeriod].months, 1);
+
+    // Create thana map to store counts
+    const thanaMap = new Map<string, number>();
+
+    crimeList.forEach((crime) => {
       const crimeDate = new Date(crime.incidentDate);
-      const endDate = new Date(year, monthIndex + 1, 0); // Last day of specified month
-      const startDate = new Date(year - 1, monthIndex + 1, 1); // First day of next month last year
 
-      return crimeDate >= startDate && crimeDate <= endDate && crime.stage.toLowerCase() === "विवेचना";
-    }).length;
+      if (crimeDate >= startDate && crimeDate <= endDate && (crime.stage.toLowerCase() === "विवेचना" || crime.stage.toLowerCase() === "चालान तैयार")) {
+        thanaMap.set(crime.thana, (thanaMap.get(crime.thana) || 0) + 1);
+      }
+    });
 
-    // Get previous year's cases (full year up to the specified month)
-    const lastYearCases = crimeList.filter((crime) => {
-      const crimeDate = new Date(crime.incidentDate);
-      const endDate = new Date(year - 1, monthIndex + 1, 0); // Last day of specified month last year
-      const startDate = new Date(year - 2, monthIndex + 1, 1); // First day of next month two years ago
-
-      return crimeDate >= startDate && crimeDate <= endDate && crime.stage.toLowerCase() === "विवेचना";
-    }).length;
-
-    const difference = currentYearCases - lastYearCases;
-    const percentageChange = lastYearCases ? (difference / lastYearCases) * 100 : 100;
+    const thanaData = Array.from(thanaMap.entries())
+      .map(([thana, count]) => ({ thana, pendingCount: count }))
+      .sort((a, b) => b.pendingCount - a.pendingCount);
 
     return {
       month,
       year,
-      currentCount: currentYearCases,
-      lastYearCount: lastYearCases,
-      difference,
-      percentageChange,
+      thanaData,
+      totalCount: thanaData.reduce((sum, t) => sum + t.pendingCount, 0),
+      periodStart: startDate.toLocaleDateString(),
+      periodEnd: endDate.toLocaleDateString(),
     };
   };
 
@@ -62,7 +86,41 @@ export const Threemonth = () => {
     <section className="bg-white rounded-xl shadow-lg border border-gray-100 basis-1/2">
       <div className="p-6">
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Quarterly Crime Comparison</h2>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800">Period-wise Analysis</h2>
+            </div>
+            <div className="flex items-center gap-4">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 
+                          bg-white text-gray-700 focus:outline-none focus:ring-2 
+                          focus:ring-blue-500 focus:border-transparent min-w-[120px]"
+              >
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year} {year === currentYear ? "(Current)" : ""}
+                  </option>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                {Object.entries(periodOptions).map(([key, { label }]) => (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedPeriod(key as PeriodOption)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                    ${
+                      selectedPeriod === key ? "bg-blue-100 text-blue-800 border-blue-200" : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                    } border`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {selectedYear === currentYear && <p className="text-xs text-amber-600 mt-2">Note: Data for current year may be incomplete</p>}
         </div>
 
         {loading ? (
@@ -85,59 +143,21 @@ export const Threemonth = () => {
                     <h3 className="text-lg font-semibold text-gray-800">
                       {stats.month} {stats.year}
                     </h3>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
-                          stats.difference > 0 ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {stats.difference > 0 ? "▲" : "▼"}
-                        {Math.abs(stats.percentageChange).toFixed(1)}%
-                      </span>
-                    </div>
+                    <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Total: {stats.totalCount}</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">Pending Investigation Cases</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Previous {periodOptions[selectedPeriod].months} months: {stats.periodStart} - {stats.periodEnd}
+                  </p>
                 </div>
 
-                <div className="p-4 space-y-4">
-                  {/* Current Year Stats */}
-                  <div className="bg-white p-3 rounded border border-gray-200">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">2023 Cases</p>
-                        <p className="text-xl font-bold text-gray-900">{stats.currentCount}</p>
+                <div className="p-4">
+                  <div className="space-y-2">
+                    {stats.thanaData.map((thana) => (
+                      <div key={thana.thana} className="flex justify-between items-center py-2 border-b border-gray-100">
+                        <span className="text-sm font-medium text-gray-700">{thana.thana}</span>
+                        <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">{thana.pendingCount}</span>
                       </div>
-                      <span className="text-xs text-gray-500">Current Year</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Previous Year Stats */}
-                <div className="bg-white p-3 rounded border border-gray-200">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">2022 Cases</p>
-                      <p className="text-xl font-bold text-gray-900">{stats.lastYearCount}</p>
-                    </div>
-                    <span className="text-xs text-gray-500">Previous Year</span>
-                  </div>
-                </div>
-
-                {/* Difference Analysis */}
-                <div className={`p-3 rounded border ${stats.difference > 0 ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}`}>
-                  <p className="text-sm font-medium text-gray-700">Year-over-Year Change</p>
-                  <div className="flex justify-between items-center mt-1">
-                    <p className={`text-lg font-bold ${stats.difference > 0 ? "text-red-700" : "text-green-700"}`}>
-                      {stats.difference > 0 ? "+" : ""}
-                      {stats.difference} cases
-                    </p>
-                    <div className="flex items-center">
-                      {stats.difference > 0 ? (
-                        <span className="text-xs text-red-600">Increased</span>
-                      ) : (
-                        <span className="text-xs text-green-600">Decreased</span>
-                      )}
-                    </div>
+                    ))}
                   </div>
                 </div>
               </div>

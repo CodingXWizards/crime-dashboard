@@ -8,11 +8,11 @@ const Home = () => {
     <main className="w-full h-screen p-4">
       <div className="flex gap-x-4">
         <Stage />
-        <Monthly />
+        <Threemonth />
       </div>
       <div className="flex gap-x-4 mt-4">
         <Thana />
-        <Threemonth />
+        <Monthly />
       </div>
     </main>
   );
