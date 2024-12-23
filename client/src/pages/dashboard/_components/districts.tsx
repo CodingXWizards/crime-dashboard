@@ -2,10 +2,8 @@ import { useCrimeStore } from "@/store";
 import { useEffect, useState } from "react";
 
 export const Districts = () => {
-  const [districts, setDistricts] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const {crimeList} = useCrimeStore();
+  const [districts, setDistricts] = useState<{ label: string; value: string }[]>([]);
+  const { crimeList } = useCrimeStore();
 
   useEffect(() => {
     fetch("http://localhost:5000/api/table/db/thana")
@@ -16,7 +14,7 @@ export const Districts = () => {
           districts.map((item: string) => ({
             label: item,
             value: item,
-          })),
+          }))
         );
       })
       .catch((error) => {
@@ -26,11 +24,11 @@ export const Districts = () => {
   }, []);
 
   return (
-    <aside className="pl-5">
+    <aside className="px-4 basis-1/5 flex flex-col border-r">
       {districts.length !== 0 &&
         districts.map((district) => (
           <p>
-            {district.label} - {crimeList.filter((crime)=> crime.thana.toLowerCase() === district.label.toLowerCase()).length}
+            {district.label} - {crimeList.filter((crime) => crime.thana.toLowerCase() === district.label.toLowerCase()).length}
           </p>
         ))}
     </aside>

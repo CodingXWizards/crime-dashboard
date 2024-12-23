@@ -1,19 +1,30 @@
-import React, { useState, useEffect } from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import useBnsStore from "@/store/useBnsStore";
 import useCrimeStore from "@/store/useCrimeStore";
 
-function Header() {
-  const [selectedChapter, setSelectedChapter] = useState("");
-  const [selectedSubChapter, setSelectedSubChapter] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
-  const [selectedStage, setSelectedStage] = useState("");
-  const { fetchBnsList, loading: bnsLoading, bnsList, error } = useBnsStore();
-  const { fetchCrimeList, loading: crimeLoading, crimeList } = useCrimeStore();
+interface HeaderProps {
+  selectedChapter: string;
+  selectedSubChapter: string;
+  selectedSection: string;
+  selectedStage: string;
+  setSelectedChapter: Dispatch<SetStateAction<string>>;
+  setSelectedSubChapter: Dispatch<SetStateAction<string>>;
+  setSelectedSection: Dispatch<SetStateAction<string>>;
+  setSelectedStage: Dispatch<SetStateAction<string>>;
+}
 
-  useEffect(() => {
-    fetchBnsList();
-    fetchCrimeList();
-  }, [fetchBnsList, fetchCrimeList]);
+export const Header: React.FC<HeaderProps> = ({
+  selectedChapter,
+  selectedSection,
+  selectedStage,
+  selectedSubChapter,
+  setSelectedChapter,
+  setSelectedSection,
+  setSelectedStage,
+  setSelectedSubChapter,
+}) => {
+  const { bnsList } = useBnsStore();
+  const { crimeList } = useCrimeStore();
 
   const chapters = [...new Set(bnsList.map((item) => item.chapterName))];
 
@@ -136,6 +147,6 @@ function Header() {
       </div>
     </div>
   );
-}
+};
 
 export default Header;
