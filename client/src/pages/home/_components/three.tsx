@@ -18,6 +18,7 @@ interface MonthlyStats {
   districtData: DistrictStats[];
   periodStart: string;
   periodEnd: string;
+  totalCount: number; // Add this line
 }
 
 type PeriodOption = "3months" | "6months" | "1year";
@@ -53,32 +54,48 @@ export const Threemonth = () => {
   const getMonthStats = (monthIndex: number): MonthlyStats => {
     const year = selectedYear;
     const month = new Date(year, monthIndex).toLocaleString("default", { month: "long" });
-
     const endDate = new Date(year, monthIndex + 1, 0);
     const startDate = new Date(year, monthIndex + 1 - periodOptions[selectedPeriod].months, 1);
 
-    // First group by district, then by police stations
     const districtMap = new Map<string, Map<string, number>>();
 
     crimeList.forEach((crime) => {
       const crimeDate = new Date(crime.incidentDate);
+      const district = crime.thana; // This is the district name
 
       if (
         crimeDate >= startDate &&
         crimeDate <= endDate &&
         (crime.stage.toLowerCase() === "विवेचना" || crime.stage.toLowerCase() === "चालान तैयार") &&
-        (!selectedDistrict || crime.thana === selectedDistrict)
+        (!selectedDistrict || district === selectedDistrict)
       ) {
-        if (!districtMap.has(crime.thana)) {
-          districtMap.set(crime.thana, new Map());
+        // Get police stations from the column that matches the district name
+        const policeStationsString = crime[district];
+
+        // Initialize district in map if not exists
+        if (!districtMap.has(district)) {
+          districtMap.set(district, new Map());
         }
 
-        const policeStationMap = districtMap.get(crime.thana)!;
-        const policeStation = crime.policeStation || "Unknown"; // Add proper police station field
-        policeStationMap.set(policeStation, (policeStationMap.get(policeStation) || 0) + 1);
+        // Get or create the police stations map for this district
+        const policeStationMap = districtMap.get(district)!;
+
+        // If we have police stations data in the district column
+        if (typeof policeStationsString === "string" && policeStationsString) {
+          // Split the police stations (assuming they're comma-separated)
+          const policeStations = policeStationsString.split(",").map((ps) => ps.trim());
+
+          // Count each police station
+          policeStations.forEach((station) => {
+            if (station) {
+              policeStationMap.set(station, (policeStationMap.get(station) || 0) + 1);
+            }
+          });
+        }
       }
     });
 
+    // Convert the map data to our expected format
     const districtData = Array.from(districtMap.entries()).map(([district, stations]) => ({
       district,
       policeStations: Array.from(stations.entries())
@@ -90,12 +107,15 @@ export const Threemonth = () => {
       totalCount: Array.from(stations.values()).reduce((sum, count) => sum + count, 0),
     }));
 
+    const totalCount = districtData.reduce((sum, district) => sum + district.totalCount, 0);
+
     return {
       month,
       year,
       districtData,
       periodStart: startDate.toLocaleDateString(),
       periodEnd: endDate.toLocaleDateString(),
+      totalCount, // Add this
     };
   };
 

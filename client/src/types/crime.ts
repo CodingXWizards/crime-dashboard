@@ -23,6 +23,7 @@ export interface Crime {
   chargeType: ChargeType;
   act: string;
   crimeNumber: string;
+  [districtKey: string]: string | number | Date | ChargeType | undefined; // Add this line to allow dynamic properties
 }
 
 export interface CrimeState {
