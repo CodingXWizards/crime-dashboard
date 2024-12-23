@@ -40,6 +40,28 @@ interface FormData {
   subChapter: string;
 }
 
+interface CrimeData {
+  id: number;
+  marker: string | null;
+  district: string | null;
+  thana: string;
+  io: string;
+  crimeNumber: string;
+  section: string;
+  incidentDate: string;
+  firDate: string;
+  totalAccused: number | null;
+  totalArrested: number | null;
+  totalLeft: number;
+  dateOfArrest: string | null;
+  stage: string;
+  chargeSheetReadyDate: string | null;
+  chargeSheetFileDate: string | null;
+  primarySection: string;
+  chargeType: string;
+  act: string | null;
+}
+
 const InputSection = () => {
   const [formData, setFormData] = useState<FormData>({
     district: "",
@@ -60,6 +82,7 @@ const InputSection = () => {
     subChapter: "",
   });
 
+  const [maxId, setMaxId] = useState<number>(0);
   const [districts, setDistricts] = useState<{ label: string; value: string }[]>([]);
   const [policeStations, setPoliceStations] = useState<{ label: string; value: string }[]>([]);
   const [sections, setSections] = useState<{ label: string; value: string }[]>([]);
@@ -79,21 +102,24 @@ const InputSection = () => {
     })
   };
 
-  // Fetch initial data
+  // Fetch max ID and initial data
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        const [districtResponse, actsResponse] = await Promise.all([
+        const [districtResponse, actsResponse, crimeResponse] = await Promise.all([
           fetch("http://localhost:5000/api/table/db/thana"),
-          fetch("http://localhost:5000/api/table/db/act")
+          fetch("http://localhost:5000/api/table/db/act"),
+          fetch("http://localhost:5000/api/table/crime/all")
         ]);
 
-        const [districtData, actsData] = await Promise.all([
+        const [districtData, actsData, crimeData] = await Promise.all([
           districtResponse.json(),
-          actsResponse.json()
+          actsResponse.json(),
+          crimeResponse.json()
         ]);
 
+        // Set districts and acts data
         setDistricts(districtData.data.map((item: string) => ({ 
           label: item, 
           value: item 
@@ -103,6 +129,12 @@ const InputSection = () => {
           label: item, 
           value: item 
         })));
+
+        // Find maximum ID from crime data
+        const currentMaxId = crimeData.reduce((max: number, item: CrimeData) => 
+          item.id > max ? item.id : max, 0);
+        setMaxId(currentMaxId);
+
       } catch (error) {
         console.error("Error fetching initial data:", error);
         alert("Failed to load initial data. Please refresh the page.");
@@ -159,7 +191,6 @@ const InputSection = () => {
 
       setLoading(true);
       try {
-        // Fetch section numbers and all sections data in parallel
         const [sectionsResponse, allSectionsResponse] = await Promise.all([
           fetch(`http://localhost:5000/api/table/${formData.act}/sectionNumber`),
           fetch(`http://localhost:5000/api/table/${formData.act}/all`)
@@ -167,8 +198,6 @@ const InputSection = () => {
 
         const sectionsData = await sectionsResponse.json();
         const allSectionsData = await allSectionsResponse.json();
-
-        console.log('All Sections Data:', allSectionsData);
         
         setSections(sectionsData.data.map((item: string) => ({ 
           label: item, 
@@ -189,14 +218,10 @@ const InputSection = () => {
 
   // Update section details when section changes
   useEffect(() => {
-    console.log('Current section:', formData.section);
-    console.log('All sections data:', sectionsData);
-    
     if (formData.section && sectionsData.length > 0) {
       const sectionInfo = sectionsData.find(
         item => String(item.sectionNumber) === String(formData.section)
       );
-      console.log('Found section info:', sectionInfo);
       
       if (sectionInfo) {
         setFormData(prev => ({
@@ -210,7 +235,6 @@ const InputSection = () => {
   }, [formData.section, sectionsData]);
 
   const handleSelectChange = (selectedOption: { value: string; label: string } | null, fieldName: keyof FormData) => {
-    console.log(`Changing ${fieldName}:`, selectedOption);
     setFormData(prev => ({ ...prev, [fieldName]: selectedOption?.value || "" }));
   };
 
@@ -236,6 +260,7 @@ const InputSection = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          id: maxId + 1,
           ...formData,
           thana: formData.policeStation,
           incidentDate: formData.incidentDate ? new Date(formData.incidentDate).toISOString() : null,
@@ -252,6 +277,9 @@ const InputSection = () => {
       if (!response.ok) {
         throw new Error(responseData.error || responseData.message || "Failed to submit case entry");
       }
+
+      // Update maxId after successful submission
+      setMaxId(prevMaxId => prevMaxId + 1);
 
       alert("Case entry submitted successfully!");
       setFormData({
@@ -391,7 +419,7 @@ const InputSection = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
             <Select
               options={sections}
               value={sections.find((option) => option.value === formData.section)}
@@ -418,62 +446,75 @@ const InputSection = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Section Content</label>
-      <textarea
-        value={formData.sectionContent}
-        readOnly
-        className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 sm:text-sm px-3 py-2"
-        rows={3}
-      />
-    </div>
-  </>
-)}
+                <textarea
+                  value={formData.sectionContent}
+                  readOnly
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-50 sm:text-sm px-3 py-2"
+                  rows={3}
+                />
+              </div>
+            </>
+          )}
 
-        {/* Total Accused and Arrested */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Stage Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Total Accused</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Stage</label>
             <input
-              type="number"
-              name="totalAccused"
-              value={formData.totalAccused}
+              type="text"
+              name="stage"
+              value={formData.stage}
               onChange={handleInputChange}
-              placeholder="Enter Total Accused"
-              min="0"
+              placeholder="Enter Stage"
               className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Arrested</label>
-            <input
-              type="number"
-              name="arrested"
-              value={formData.arrested}
-              onChange={handleInputChange}
-              placeholder="Enter Arrested"
-              min="0"
-              className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
-            />
-          </div>
-        </div>
 
-        {/* Submit Button */}
-        <div>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full h-12 ${
-              loading 
-                ? 'bg-indigo-400 cursor-not-allowed' 
-                : 'bg-indigo-600 hover:bg-indigo-700'
-            } text-white font-semibold py-2 px-4 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-          >
-            {loading ? 'Submitting...' : 'Submit'}
-          </button>
-        </div>
-      </form>
+          {/* Total Accused and Arrested */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Total Accused</label>
+              <input
+                type="number"
+                name="totalAccused"
+                value={formData.totalAccused}
+                onChange={handleInputChange}
+                placeholder="Enter Total Accused"
+                min="0"
+                className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Arrested</label>
+              <input
+                type="number"
+                name="arrested"
+                value={formData.arrested}
+                onChange={handleInputChange}
+                placeholder="Enter Arrested"
+                min="0"
+                className="mt-1 block w-full h-12 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full h-12 ${
+                loading 
+                  ? 'bg-indigo-400 cursor-not-allowed' 
+                  : 'bg-indigo-600 hover:bg-indigo-700'
+              } text-white font-semibold py-2 px-4 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+            >
+              {loading ? 'Submitting...' : 'Submit'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default InputSection;
