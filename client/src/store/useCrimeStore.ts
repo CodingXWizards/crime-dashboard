@@ -14,7 +14,7 @@ const useCrimeStore = create<CrimeState>()(
       fetchCrimeList: async () => {
         set({ loading: true, error: null });
         try {
-          const response = await fetch(`${API_URL}/table/crime?page=1`);
+          const response = await fetch(`${API_URL}/table/crime/all`);
           if (!response.ok) {
             throw new Error("Failed to fetch crime list");
           }

@@ -1,15 +1,15 @@
 import { Routes, Route } from "react-router-dom";
-import InputSection from "@/pages/InputSection";
+import Entry from "@/pages/entry";
 import Home from "@/pages/home";
-import Header from "@/pages/dashboard/Header";
+import Dashboard from "./pages/dashboard";
 
 const App = () => {
   return (
     <div>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/entry" element={<InputSection />} />
-        <Route path="/dashboard" element={<Header />} />
+        <Route path="/entry" element={<Entry />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </div>
   );

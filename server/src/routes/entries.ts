@@ -29,7 +29,6 @@ router.post("/case-entry", async (req, res) => {
     }
 
     const {
-      id,
       district,
       thana,
       crimeNumber,
@@ -45,7 +44,6 @@ router.post("/case-entry", async (req, res) => {
     } = req.body;
 
     const insertData = {
-      id,
       district,
       thana,
       crimeNumber,
