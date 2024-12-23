@@ -36,12 +36,14 @@ const Entry = () => {
   const [acts, setActs] = useState<{ label: string; value: string }[]>([]);
   const [sectionsData, setSectionsData] = useState<SectionData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [stages, setStages] = useState<{ label: string; value: string }[]>([]);
 
   // Fetch max ID and initial data
   useEffect(() => {
     const fetchAllData = async () => {
       setDistricts((await getData("thana")).result);
       setActs((await getData("act")).result);
+      setStages((await getData("stage")).result);
       fetch("/api/sections")
         .then((res) => res.json())
         .then((data) => setSections(data));
@@ -240,6 +242,14 @@ const Entry = () => {
             type="NUMBER"
             placeholder="Enter Crime Number (e.g., 123/45)"
             value={formData.crimeNumber}
+            formData={formData}
+            setFormData={setFormData}
+          />
+          <DropDown
+            name="Stage"
+            fieldName="stage"
+            data={stages}
+            value={formData.stage}
             formData={formData}
             setFormData={setFormData}
           />
