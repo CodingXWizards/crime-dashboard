@@ -86,30 +86,17 @@ export const Stage = () => {
         thanaData.yellowLine++;
         totals.yellowLine++;
       }
-      if (
-        crime.marker?.toLowerCase().includes("red") &&
-        crime.stage.toLowerCase() !== "चालान तैयार"
-      ) {
+      if (crime.marker?.toLowerCase().includes("red") && crime.stage.toLowerCase() !== "चालान तैयार") {
         thanaData.redLine++;
         totals.redLine++;
       }
     });
 
     thanaMap.forEach((data) => {
-      data.kulYog =
-        data.khatma +
-        data.kharji +
-        data.chalanTaiyar +
-        data.chalanPesh +
-        data.vivechna;
+      data.kulYog = data.khatma + data.kharji + data.chalanTaiyar + data.chalanPesh + data.vivechna;
     });
 
-    totals.kulYog =
-      totals.khatma +
-      totals.kharji +
-      totals.chalanTaiyar +
-      totals.chalanPesh +
-      totals.vivechna;
+    totals.kulYog = totals.khatma + totals.kharji + totals.chalanTaiyar + totals.chalanPesh + totals.vivechna;
 
     return {
       thanaData: Array.from(thanaMap.values()),
@@ -121,7 +108,7 @@ export const Stage = () => {
 
   return (
     <section className="bg-gray-100 basis-1/2 border border-gray-200 rounded-md w-full overflow-auto flex-grow shadow-md">
-      <table className="w-full border-collapse text-sm bg-white shadow">
+      <table className="w-full border-collapse text-sm h-full bg-white shadow">
         <thead>
           <tr className="bg-gray-200 text-gray-800">
             <th rowSpan={2} className="p-3 font-semibold">
@@ -148,21 +135,14 @@ export const Stage = () => {
         </thead>
         <tbody>
           {thanaData.map((data, index) => (
-            <tr
-              key={data.thana}
-              className={`${
-                index % 2 === 0 ? "bg-gray-50" : "bg-white"
-              } hover:bg-gray-100 transition`}
-            >
+            <tr key={data.thana} className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-gray-100 transition`}>
               <td className="p-3 text-center font-semibold">{data.thana}</td>
               <td>{data.khatma || "-"}</td>
               <td>{data.kharji || "-"}</td>
               <td>{data.chalanTaiyar || "-"}</td>
               <td>{data.chalanPesh || "-"}</td>
               <td>{data.vivechna || "-"}</td>
-              <td className="p-3 text-center font-bold bg-gray-100">
-                {data.kulYog || "-"}
-              </td>
+              <td className="p-3 text-center font-bold bg-gray-100">{data.kulYog || "-"}</td>
               <td>{data.yellowLine || "-"}</td>
               <td>{data.redLine || "-"}</td>
               <td>{data.chalanTaiyarRedLine || "-"}</td>
@@ -177,18 +157,14 @@ export const Stage = () => {
             <td>{totals.chalanTaiyar || "-"}</td>
             <td>{totals.chalanPesh || "-"}</td>
             <td>{totals.vivechna || "-"}</td>
-            <td className="p-3 text-center bg-gray-100">
-              {totals.kulYog || "-"}
-            </td>
+            <td className="p-3 text-center bg-gray-100">{totals.kulYog || "-"}</td>
             <td>{totals.yellowLine || "-"}</td>
             <td>{totals.redLine || "-"}</td>
             <td>{totals.chalanTaiyarRedLine || "-"}</td>
           </tr>
         </tfoot>
       </table>
-      {loading && (
-        <div className="text-center py-4 text-gray-600">Loading...</div>
-      )}
+      {loading && <div className="text-center py-4 text-gray-600">Loading...</div>}
     </section>
   );
 };
