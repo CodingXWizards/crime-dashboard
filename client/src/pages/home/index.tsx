@@ -1,6 +1,7 @@
 import { Monthly } from "./_components/monthly";
 import { Stage } from "./_components/stage";
 import { Thana } from "./_components/thana";
+import { Threemonth } from "./_components/three";
 
 const Home = () => {
   return (
@@ -9,9 +10,9 @@ const Home = () => {
         <Stage />
         <Monthly />
       </div>
-      <div className="flex gap-x-4">
+      <div className="flex gap-x-4 mt-4">
         <Thana />
-        <Thana />
+        <Threemonth />
       </div>
     </main>
   );
