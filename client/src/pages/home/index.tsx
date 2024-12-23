@@ -4,10 +4,15 @@ import { Thana } from "./_components/thana";
 
 const Home = () => {
   return (
-    <main className="w-full h-screen grid grid-cols-2 gap-4 p-4">
-      <Stage />
-      <Monthly />
-      <Thana />
+    <main className="w-full h-screen p-4">
+      <div className="flex gap-x-4">
+        <Stage />
+        <Monthly />
+      </div>
+      <div className="flex gap-x-4">
+        <Thana />
+        <Thana />
+      </div>
     </main>
   );
 };
