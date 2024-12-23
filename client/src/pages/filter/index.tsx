@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Districts } from "./_components/districts";
-import Graph from "./_components/graph";
-import Header from "./_components/header";
+import { Districts } from "../home/_components/districts";
+import Graph from "../home/_components/graph";
+import Header from "../home/_components/header";
 import { useCrimeStore } from "@/store";
 import useBnsStore from "@/store/useBnsStore";
 
-const Dashboard = () => {
+const Filters = () => {
   const [selectedChapter, setSelectedChapter] = useState<string>("");
   const [selectedSubChapter, setSelectedSubChapter] = useState<string>("");
   const [selectedSection, setSelectedSection] = useState<string>("");
@@ -32,10 +32,15 @@ const Dashboard = () => {
           setSelectedStage={setSelectedStage}
           setSelectedSubChapter={setSelectedSubChapter}
         />
-        <Graph selectedChapter={selectedChapter} selectedSection={selectedSection} selectedStage={selectedStage} selectedSubChapter={selectedSubChapter} />
+        <Graph
+          selectedChapter={selectedChapter}
+          selectedSection={selectedSection}
+          selectedStage={selectedStage}
+          selectedSubChapter={selectedSubChapter}
+        />
       </div>
     </main>
   );
 };
 
-export default Dashboard;
+export default Filters;

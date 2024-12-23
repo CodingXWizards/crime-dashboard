@@ -228,6 +228,7 @@ const Entry = () => {
           <DropDown
             name="Police Station"
             fieldName="policeStation"
+            disabled={!formData.district}
             data={policeStations}
             value={formData.policeStation}
             formData={formData}
