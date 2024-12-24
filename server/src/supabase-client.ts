@@ -12,7 +12,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export async function checkSupabaseConnection() {
   const { data, error } = await supabase
     .from("crime") // You can replace this with any table that exists
-    .select("id")
+    .select("uid")
     .limit(1);
 
   if (error) {
