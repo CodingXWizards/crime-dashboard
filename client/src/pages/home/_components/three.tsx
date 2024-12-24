@@ -31,10 +31,7 @@ export const Threemonth = () => {
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
 
   // Generate array of years from 2020 to current year
-  const availableYears = Array.from(
-    { length: currentYear - 2020 + 1 },
-    (_, index) => currentYear - index
-  );
+  const availableYears = Array.from({ length: currentYear - 2020 + 1 }, (_, index) => currentYear - index);
 
   const periodOptions: Record<PeriodOption, PeriodConfig> = {
     "3months": { label: "3 Months", months: 3 },
@@ -54,11 +51,7 @@ export const Threemonth = () => {
 
     // Set date range based on selected period
     const endDate = new Date(year, monthIndex + 1, 0);
-    const startDate = new Date(
-      year,
-      monthIndex + 1 - periodOptions[selectedPeriod].months,
-      1
-    );
+    const startDate = new Date(year, monthIndex + 1 - periodOptions[selectedPeriod].months, 1);
 
     // Create thana map to store counts
     const thanaMap = new Map<string, number>();
@@ -66,13 +59,8 @@ export const Threemonth = () => {
     crimeList.forEach((crime) => {
       const crimeDate = new Date(crime.incidentDate);
 
-      if (
-        crimeDate >= startDate &&
-        crimeDate <= endDate &&
-        (crime.stage.toLowerCase() === "विवेचना" ||
-          crime.stage.toLowerCase() === "चालान तैयार")
-      ) {
-        thanaMap.set(crime.thana, (thanaMap.get(crime.thana) || 0) + 1);
+      if (crimeDate >= startDate && crimeDate <= endDate && (crime.stage.toLowerCase() === "विवेचना" || crime.stage.toLowerCase() === "चालान तैयार")) {
+        thanaMap.set(crime.district, (thanaMap.get(crime.district) || 0) + 1);
       }
     });
 
@@ -102,9 +90,7 @@ export const Threemonth = () => {
         <div className="mb-6">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                Period-wise Analysis
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-800">Period-wise Analysis</h2>
             </div>
             <div className="flex items-center gap-4">
               <select
@@ -127,9 +113,7 @@ export const Threemonth = () => {
                     onClick={() => setSelectedPeriod(key as PeriodOption)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
                     ${
-                      selectedPeriod === key
-                        ? "bg-blue-100 text-blue-800 border-blue-200"
-                        : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                      selectedPeriod === key ? "bg-blue-100 text-blue-800 border-blue-200" : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
                     } border`}
                   >
                     {label}
@@ -138,11 +122,7 @@ export const Threemonth = () => {
               </div>
             </div>
           </div>
-          {selectedYear === currentYear && (
-            <p className="text-xs text-amber-600">
-              Note: Data for current year may be incomplete
-            </p>
-          )}
+          {selectedYear === currentYear && <p className="text-xs text-amber-600">Note: Data for current year may be incomplete</p>}
         </div>
 
         {loading ? (
@@ -159,22 +139,16 @@ export const Threemonth = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {monthsToShow.map((stats, index) => (
-              <div
-                key={index}
-                className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden"
-              >
+              <div key={index} className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
                 <div className="bg-gray-100 p-4 border-b border-gray-200">
                   <div className="flex justify-between items-center text-nowrap">
                     <h3 className="text-lg font-semibold text-gray-800">
                       {stats.month} {stats.year}
                     </h3>
-                    <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                      Total: {stats.totalCount}
-                    </span>
+                    <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">Total: {stats.totalCount}</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Previous {periodOptions[selectedPeriod].months} months:{" "}
-                    <br />
+                    Previous {periodOptions[selectedPeriod].months} months: <br />
                     {stats.periodStart} - {stats.periodEnd}
                   </p>
                 </div>
@@ -183,23 +157,14 @@ export const Threemonth = () => {
                   <div className="space-y-2">
                     {stats.thanaData.length > 0 ? (
                       stats.thanaData.map((thana) => (
-                        <div
-                          key={thana.thana}
-                          className="flex justify-between items-center py-2 border-b border-gray-100"
-                        >
-                          <span className="text-sm font-medium text-gray-700">
-                            {thana.thana}
-                          </span>
-                          <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">
-                            {thana.pendingCount}
-                          </span>
+                        <div key={thana.thana} className="flex justify-between items-center py-2 border-b border-gray-100">
+                          <span className="text-sm font-medium text-gray-700">{thana.thana}</span>
+                          <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">{thana.pendingCount}</span>
                         </div>
                       ))
                     ) : (
                       <div className="flex items-center justify-center h-full">
-                        <p className="text-sm text-gray-500">
-                          No data available
-                        </p>
+                        <p className="text-sm text-gray-500">No data available</p>
                       </div>
                     )}
                   </div>
