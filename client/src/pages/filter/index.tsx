@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Districts } from "../home/_components/districts";
-import Graph from "../home/_components/graph";
-import Header from "../home/_components/header";
+import { Districts } from "./_components/districts";
+import Graph from "./_components/graph";
+import Header from "./_components/header";
 import { useCrimeStore } from "@/store";
 import useBnsStore from "@/store/useBnsStore";
 
