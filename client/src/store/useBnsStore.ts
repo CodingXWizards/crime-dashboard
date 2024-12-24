@@ -1,8 +1,9 @@
+import { config } from "@/constants/env";
 import { Bns, BnsState } from "@/types/bns";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = config.apiUrl;
 
 // Define the Zustand store with the proper type annotations
 const useBnsStore = create<BnsState>()(

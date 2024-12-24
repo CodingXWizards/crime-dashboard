@@ -1,5 +1,6 @@
 import { DropDown } from "@/components/dropdown";
 import { InputField } from "@/components/input-field";
+import { config } from "@/constants/env";
 import { FormData, SectionData } from "@/types/form-entry";
 import { getData } from "@/utils/helper";
 import { useEffect, useState } from "react";
@@ -84,9 +85,9 @@ const Entry = () => {
       try {
         const [sectionsResponse, allSectionsResponse] = await Promise.all([
           fetch(
-            `http://localhost:5000/api/table/${formData.act}/sectionNumber`
+            `${config.apiUrl}/table/${formData.act}/sectionNumber`
           ),
-          fetch(`http://localhost:5000/api/table/${formData.act}/all`),
+          fetch(`${config.apiUrl}/table/${formData.act}/all`),
         ]);
 
         const sectionsData = await sectionsResponse.json();
@@ -141,7 +142,7 @@ const Entry = () => {
 
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/case-entry", {
+      const response = await fetch(`${config.apiUrl}/case-entry`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,5 +1,6 @@
+import { config } from '@/constants/env';
 export const getData = async (dbValue: string): Promise<{ error?: string, result: { label: string, value: string }[] }> => {
-    const res = await fetch(`http://localhost:5000/api/table/db/${dbValue}`);
+    const res = await fetch(`${config.apiUrl}/table/db/${dbValue}`);
 
     if (!res.ok)
         return { error: "Failed while fetching", result: [] };
