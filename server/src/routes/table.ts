@@ -1,4 +1,4 @@
-import { getAllTableData, getTableData,getColumnData } from "@src/controllers/table";
+import { getAllTableData, getTableData, getColumnData } from "../controllers/table";
 import { Router } from "express";
 
 const router = Router();

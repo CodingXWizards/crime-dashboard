@@ -1,6 +1,6 @@
-import { supabase } from "@src/supabase-client";
+import { supabase } from "../supabase-client";
 import { Router } from "express";
-import logger from "@src/logger";
+import logger from "../logger";
 
 const router = Router();
 

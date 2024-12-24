@@ -1,14 +1,13 @@
-import "module-alias/register";
-import "dotenv/config"; // Load environment variables
+import "dotenv/config";
 
 import cors from "cors";
 import express, { Application, Response } from "express";
 import morgan from "morgan";
 
-import logger from "@src/logger";
-import { checkSupabaseConnection } from "@src/supabase-client";
-import tableRouter from "@src/routes/table";
-import entriesRouter from "@src/routes/entries";
+import logger from "./logger";
+import { checkSupabaseConnection } from "./supabase-client";
+import tableRouter from "./routes/table";
+import entriesRouter from "./routes/entries";
 
 const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
 

@@ -1,5 +1,5 @@
-import logger from "@src/logger";
-import { supabase } from "@src/supabase-client";
+import logger from "../logger";
+import { supabase } from "../supabase-client";
 import { Request, Response } from "express";
 
 export const getTableData = async (req: Request, res: Response) => {
@@ -14,11 +14,7 @@ export const getTableData = async (req: Request, res: Response) => {
 
   try {
     // Fetch data with pagination
-    const { data, error } = await supabase
-      .from(tableName)
-      .select("*")
-      .range(from, to)
-      .order("id", { ascending: true });
+    const { data, error } = await supabase.from(tableName).select("*").range(from, to).order("id", { ascending: true });
 
     if (error) {
       logger.error(`Error fetching table fields: ${error.message}`);
@@ -30,19 +26,13 @@ export const getTableData = async (req: Request, res: Response) => {
     }
 
     const fields = Object.keys(data[0]);
-    logger.info(
-      `Fields retrieved from table ${tableName}: ${fields.join(", ")}`,
-    );
+    logger.info(`Fields retrieved from table ${tableName}: ${fields.join(", ")}`);
 
     // Get the total record count using a separate query
-    const { count, error: countError } = await supabase
-      .from(tableName)
-      .select("id", { count: "exact" }); // Using an arbitrary column (id) for count query
+    const { count, error: countError } = await supabase.from(tableName).select("id", { count: "exact" }); // Using an arbitrary column (id) for count query
 
     if (countError && !count) {
-      logger.error(
-        `Error fetching total count for table ${tableName}: ${countError.message}`,
-      );
+      logger.error(`Error fetching total count for table ${tableName}: ${countError.message}`);
       return res.status(500).json({ error: "Failed to fetch total count" });
     }
 
@@ -93,10 +83,7 @@ export const getColumnData = async (req: Request, res: Response) => {
 
   try {
     // Using 'is null' syntax instead of string comparison
-    const { data, error } = await supabase
-      .from(tableName)
-      .select(columnName)
-      .not(columnName, 'is', null);
+    const { data, error } = await supabase.from(tableName).select(columnName).not(columnName, "is", null);
     // Removed the redundant .filter() call
 
     if (error) {
@@ -111,13 +98,11 @@ export const getColumnData = async (req: Request, res: Response) => {
     // Extract the column values into an array using the column name as a string key
     const columnData = data.map((row: Record<string, any>) => row[columnName]);
 
-    logger.info(
-      `Retrieved ${columnData.length} non-null values from column ${columnName} in table ${tableName}`,
-    );
+    logger.info(`Retrieved ${columnData.length} non-null values from column ${columnName} in table ${tableName}`);
 
     return res.status(200).json({
       column: columnName,
-      data: columnData
+      data: columnData,
     });
   } catch (err: any) {
     logger.error(`Error in /db/${columnName}: ${err.message}`);

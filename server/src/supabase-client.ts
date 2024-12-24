@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import logger from "@src/logger";
+import logger from "./logger";
 
 // Get Supabase URL and Anon Key from environment variables
 const SUPABASE_URL = process.env.SUPABASE_URL as string;
