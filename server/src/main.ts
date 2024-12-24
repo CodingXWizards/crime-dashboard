@@ -9,7 +9,7 @@ import { checkSupabaseConnection } from "./supabase-client";
 import tableRouter from "./routes/table";
 import entriesRouter from "./routes/entries";
 
-const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173", "https://crime-dashboard-beta.vercel.app"];
 
 const app: Application = express();
 
