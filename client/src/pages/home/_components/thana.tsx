@@ -110,7 +110,7 @@ export const Thana = () => {
                     <thead>
                       <tr className="bg-gray-50">
                         <th className="p-3 border-b border-gray-200 text-left font-semibold text-gray-700">Thana</th>
-                        <th className="p-3 border-b border-gray-200 text-center font-semibold text-gray-700">IO Count</th>
+                        <th className="p-3 border-b border-gray-200 text-center font-semibold text-gray-700">Crime Count</th>
                       </tr>
                     </thead>
                     <tbody>

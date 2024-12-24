@@ -68,7 +68,7 @@ export const Monthly = () => {
             <tr className="bg-gray-200">
               <th rowSpan={2}>Crime Month</th>
               <th rowSpan={2}>Crime Week</th>
-              <th colSpan={districtList.length + 1}>Thana</th>
+              <th colSpan={districtList.length + 1}>District</th>
             </tr>
             <tr className="bg-gray-100">
               {districtList.map((thana) => (
