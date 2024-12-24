@@ -12,13 +12,13 @@ import entriesRouter from "@src/routes/entries";
 
 const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
 
-const App: Application = express();
+const app: Application = express();
 
-App.use(express.json());
-App.use(morgan("dev"));
+app.use(express.json());
+app.use(morgan("dev"));
 
 // Update CORS configuration
-App.use(
+app.use(
   cors({
     origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -31,17 +31,23 @@ checkSupabaseConnection();
 
 // ---- Routes ----
 
-App.use("/api/table", tableRouter);
-App.use("/api", entriesRouter);
+app.use("/api/table", tableRouter);
+app.use("/api", entriesRouter);
 
 // ---- Routes ----
 
-App.get("/", (_, res: Response) => {
+app.get("/", (_, res: Response) => {
   res.status(200).send("Server Running correctly");
 });
 
-const PORT = process.env.PORT || 5000;
+const port = process.env.PORT || 5000;
 
-App.listen(PORT, () => {
-  logger.info(`Server running at http://localhost:${PORT}`);
-});
+// Only listen to port if not running on Vercel
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    logger.info(`Server running at http://localhost:${port}`);
+  });
+}
+
+// Export the Express app for Vercel
+export default app;
