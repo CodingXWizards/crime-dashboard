@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase-client";
 import { getData } from "@/utils/helper";
 import { useEffect, useState } from "react";
+import { Loader } from "@/components/loader";
 
 interface CrimeData {
   monthNumber: number; // Represents the crime month (1 for January, 2 for February, etc.)
@@ -25,6 +26,7 @@ export const Monthly = () => {
       try {
         const { data, error } = await supabase.rpc("get_crime_data");
         if (error) throw error;
+        console.log(data);
         const consolidatedData: CrimeData[] = [];
         data.forEach((item: CrimeData) => {
           const existingEntry = consolidatedData.find(
@@ -57,64 +59,68 @@ export const Monthly = () => {
   }, []);
 
   return (
-    <section className="border basis-1/2 shadow-lg overflow-auto rounded-md w-full max-h-[calc(100vh-50vh)] flex flex-col">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-200">
-            <th rowSpan={2}>Crime Month</th>
-            <th rowSpan={2}>Crime Week</th>
-            <th colSpan={thanaList.length + 1}>Thana</th>
-          </tr>
-          <tr className="bg-gray-100">
-            {thanaList.map((thana) => (
-              <th
-                key={thana}
-                className="px-4 py-2 border border-gray-300 text-center"
-              >
-                {thana}
-              </th>
-            ))}
-            <th>कुल योग</th>
-          </tr>
-        </thead>
-        <tbody>
-          {crimeData.map((row: CrimeData, index) => (
-            <tr key={index}>
-              <td className="bg-gray-100 font-semibold px-4 py-2 border border-gray-300">
-                {row.monthNumber}
-              </td>
-              <td className="bg-gray-100 font-semibold px-4 py-2 border border-gray-300">
-                {row.weekNumber}
-              </td>
+    <section className="bg-white rounded-md overflow-auto h-[calc(100vh-1.5rem)] md:h-[calc(100vh-50vh-1.5rem)] shadow-lg border basis-1/2">
+      {!crimeData.length ? (
+        <Loader />
+      ) : (
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-200">
+              <th rowSpan={2}>Crime Month</th>
+              <th rowSpan={2}>Crime Week</th>
+              <th colSpan={thanaList.length + 1}>Thana</th>
+            </tr>
+            <tr className="bg-gray-100">
               {thanaList.map((thana) => (
-                <td
-                  key={`${index}-${thana}`}
+                <th
+                  key={thana}
                   className="px-4 py-2 border border-gray-300 text-center"
                 >
-                  {row[thana] || 0}
-                </td>
+                  {thana}
+                </th>
               ))}
-              <td className="font-semibold bg-gray-100">
-                {thanaList.reduce((sum, thana) => sum + (row[thana] || 0), 0)}
+              <th>कुल योग</th>
+            </tr>
+          </thead>
+          <tbody>
+            {crimeData.map((row: CrimeData, index) => (
+              <tr key={index}>
+                <td className="bg-gray-100 font-semibold px-4 py-2 border border-gray-300">
+                  {row.monthNumber}
+                </td>
+                <td className="bg-gray-100 font-semibold px-4 py-2 border border-gray-300">
+                  {row.weekNumber}
+                </td>
+                {thanaList.map((thana) => (
+                  <td
+                    key={`${index}-${thana}`}
+                    className="px-4 py-2 border border-gray-300 text-center"
+                  >
+                    {row[thana] || 0}
+                  </td>
+                ))}
+                <td className="font-semibold bg-gray-100">
+                  {thanaList.reduce((sum, thana) => sum + (row[thana] || 0), 0)}
+                </td>
+              </tr>
+            ))}
+            <tr className="bg-gray-200 font-semibold">
+              <td colSpan={2}>कुल योग</td>
+              {thanaList.map((thana) => (
+                <td>{crimeData.reduce((sum, d) => sum + (d[thana] || 0), 0)}</td>
+              ))}
+              <td>
+                {thanaList.reduce(
+                  (wholeSum, thana) =>
+                    wholeSum +
+                    crimeData.reduce((sum, row) => sum + (row[thana] || 0), 0),
+                  0
+                )}
               </td>
             </tr>
-          ))}
-          <tr className="bg-gray-200 font-semibold">
-            <td colSpan={2}>कुल योग</td>
-            {thanaList.map((thana) => (
-              <td>{crimeData.reduce((sum, d) => sum + (d[thana] || 0), 0)}</td>
-            ))}
-            <td>
-              {thanaList.reduce(
-                (wholeSum, thana) =>
-                  wholeSum +
-                  crimeData.reduce((sum, row) => sum + (row[thana] || 0), 0),
-                0
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      )}
     </section>
   );
 };

@@ -4,6 +4,7 @@ import useCrimeStore from "@/store/useCrimeStore";
 import { DropDown } from "@/components/dropdown";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { FormData } from '@/types/form-entry';
+import { Loader } from "@/components/loader";
 
 export const Thana = () => {
   const [districts, setDistricts] = useState<{ label: string; value: string }[]>([]);
@@ -71,7 +72,7 @@ export const Thana = () => {
   };
 
   return (
-    <section className="border basis-1/2 shadow-lg rounded-md w-full max-h-[calc(100vh-50vh)] flex flex-col">
+    <section className="bg-white rounded-md overflow-auto h-[calc(100vh-1.5rem)] md:h-[calc(100vh-50vh-1.5rem)] shadow-lg border basis-1/2">
       <div className="p-4 border-b bg-white sticky top-0 z-10">
         <DropDown
           name="Stage"
@@ -84,8 +85,8 @@ export const Thana = () => {
       </div>
       
       {loading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center py-4 text-gray-600">Loading...</div>
+        <div className="flex-1">
+          <Loader />
         </div>
       ) : (
         <div className="overflow-auto flex-1 p-4">

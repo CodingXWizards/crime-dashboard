@@ -33,7 +33,7 @@ export const Threemonth = () => {
   // Generate array of years from 2020 to current year
   const availableYears = Array.from(
     { length: currentYear - 2020 + 1 },
-    (_, index) => currentYear - index,
+    (_, index) => currentYear - index
   );
 
   const periodOptions: Record<PeriodOption, PeriodConfig> = {
@@ -57,7 +57,7 @@ export const Threemonth = () => {
     const startDate = new Date(
       year,
       monthIndex + 1 - periodOptions[selectedPeriod].months,
-      1,
+      1
     );
 
     // Create thana map to store counts
@@ -97,7 +97,7 @@ export const Threemonth = () => {
   ];
 
   return (
-    <section className="bg-white rounded-xl overflow-auto max-h-[calc(100vh-50vh)] shadow-lg border border-gray-100 basis-1/2">
+    <section className="bg-white rounded-md overflow-auto h-[calc(100vh-1.5rem)] md:h-[calc(100vh-50vh-1.5rem)] shadow-lg border basis-1/2">
       <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-center">
@@ -126,10 +126,11 @@ export const Threemonth = () => {
                     key={key}
                     onClick={() => setSelectedPeriod(key as PeriodOption)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                    ${selectedPeriod === key
+                    ${
+                      selectedPeriod === key
                         ? "bg-blue-100 text-blue-800 border-blue-200"
                         : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
-                      } border`}
+                    } border`}
                   >
                     {label}
                   </button>
@@ -138,7 +139,7 @@ export const Threemonth = () => {
             </div>
           </div>
           {selectedYear === currentYear && (
-            <p className="text-xs text-amber-600 mt-2">
+            <p className="text-xs text-amber-600">
               Note: Data for current year may be incomplete
             </p>
           )}
@@ -173,25 +174,34 @@ export const Threemonth = () => {
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     Previous {periodOptions[selectedPeriod].months} months:{" "}
+                    <br />
                     {stats.periodStart} - {stats.periodEnd}
                   </p>
                 </div>
 
                 <div className="p-4">
                   <div className="space-y-2">
-                    {stats.thanaData.map((thana) => (
-                      <div
-                        key={thana.thana}
-                        className="flex justify-between items-center py-2 border-b border-gray-100"
-                      >
-                        <span className="text-sm font-medium text-gray-700">
-                          {thana.thana}
-                        </span>
-                        <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">
-                          {thana.pendingCount}
-                        </span>
+                    {stats.thanaData.length > 0 ? (
+                      stats.thanaData.map((thana) => (
+                        <div
+                          key={thana.thana}
+                          className="flex justify-between items-center py-2 border-b border-gray-100"
+                        >
+                          <span className="text-sm font-medium text-gray-700">
+                            {thana.thana}
+                          </span>
+                          <span className="text-sm bg-gray-100 px-2 py-1 rounded-full">
+                            {thana.pendingCount}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-gray-500">
+                          No data available
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>

@@ -5,12 +5,12 @@ import { Threemonth } from "./_components/three";
 
 const Home = () => {
   return (
-    <main className="w-full h-screen p-4">
-      <div className="flex gap-x-4">
+    <main className="w-full h-screen p-4 space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Stage />
         <Threemonth />
       </div>
-      <div className="flex gap-x-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Thana />
         <Monthly />
       </div>
