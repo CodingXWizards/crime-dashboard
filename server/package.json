@@ -9,7 +9,7 @@
     "start": "node dist/main.js"
   },
   "_moduleAliases": {
-    "@src": "dist"
+    "@src": "./src"
   },
   "keywords": [],
   "author": "",
