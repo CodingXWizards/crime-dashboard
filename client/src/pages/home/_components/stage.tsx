@@ -4,19 +4,12 @@ import { Loader } from "@/components/loader";
 
 interface StageData {
   thana: string;
-  khatma: number;
-  kharji: number;
-  chalanTaiyar: number;
-  chalanPesh: number;
-  vivechna: number;
-  yellowLine: number;
-  redLine: number;
-  chalanTaiyarRedLine: number;
+  [key: string]: number | string;
   kulYog: number;
 }
 
 export const Stage = () => {
-  const { crimeList, fetchCrimeList, loading } = useCrimeStore();
+  const { crimeList, fetchCrimeList, stages, loading } = useCrimeStore();
 
   useEffect(() => {
     fetchCrimeList();
@@ -27,77 +20,38 @@ export const Stage = () => {
 
     const totals: StageData = {
       thana: "कुल योग",
-      khatma: 0,
-      kharji: 0,
-      chalanTaiyar: 0,
-      chalanPesh: 0,
-      vivechna: 0,
       kulYog: 0,
-      yellowLine: 0,
-      redLine: 0,
-      chalanTaiyarRedLine: 0,
     };
 
+    // Initialize thana data
     crimeList.forEach((crime) => {
-      if (!thanaMap.has(crime.thana)) {
-        thanaMap.set(crime.thana, {
-          thana: crime.thana,
-          khatma: 0,
-          kharji: 0,
-          chalanTaiyar: 0,
-          chalanPesh: 0,
-          vivechna: 0,
+      if (!thanaMap.has(crime.district)) {
+        const newThanaData: StageData = {
+          thana: crime.district,
           kulYog: 0,
-          yellowLine: 0,
-          redLine: 0,
-          chalanTaiyarRedLine: 0,
+        };
+        // Initialize stage counters
+        stages.forEach((stage) => {
+          newThanaData[stage.name] = 0;
+          totals[stage.name] = totals[stage.name] || 0;
         });
+        thanaMap.set(crime.district, newThanaData);
       }
 
-      const thanaData = thanaMap.get(crime.thana)!;
+      const thanaData = thanaMap.get(crime.district)!;
 
-      switch (crime.stage.toLowerCase()) {
-        case "खात्मा":
-          thanaData.khatma++;
-          totals.khatma++;
-          break;
-        case "खारजी":
-          thanaData.kharji++;
-          totals.kharji++;
-          break;
-        case "चालान तैयार":
-          if (!crime.marker?.toLowerCase().includes("red")) {
-            thanaData.chalanTaiyar++;
-            totals.chalanTaiyar++;
-          } else {
-            thanaData.chalanTaiyarRedLine++;
-          }
-          break;
-        case "चालान पेश":
-          thanaData.chalanPesh++;
-          totals.chalanPesh++;
-          break;
-        case "विवेचना":
-          thanaData.vivechna++;
-          totals.vivechna++;
-          break;
-      }
-
-      if (crime.marker?.toLowerCase().includes("yellow")) {
-        thanaData.yellowLine++;
-        totals.yellowLine++;
-      }
-      if (crime.marker?.toLowerCase().includes("red") && crime.stage.toLowerCase() !== "चालान तैयार") {
-        thanaData.redLine++;
-        totals.redLine++;
+      // Count stage occurrences
+      if (crime.stage) {
+        thanaData[crime.stage] = ((thanaData[crime.stage] as number) || 0) + 1;
+        totals[crime.stage] = ((totals[crime.stage] as number) || 0) + 1;
       }
     });
 
+    // Calculate totals
     thanaMap.forEach((data) => {
-      data.kulYog = data.khatma + data.kharji + data.chalanTaiyar + data.chalanPesh + data.vivechna;
+      data.kulYog = stages.reduce((sum, stage) => sum + ((data[stage.name] as number) || 0), 0);
     });
-
-    totals.kulYog = totals.khatma + totals.kharji + totals.chalanTaiyar + totals.chalanPesh + totals.vivechna;
+    totals.kulYog = stages.reduce((sum, stage) => sum + ((totals[stage.name] as number) || 0), 0);
 
     return {
       thanaData: Array.from(thanaMap.values()),
@@ -116,55 +70,41 @@ export const Stage = () => {
           <thead>
             <tr className="bg-gray-200 text-gray-800">
               <th rowSpan={2} className="p-3 font-semibold">
-                थाना
+                District
               </th>
-              <th colSpan={6} className="p-3 font-semibold">
+              <th colSpan={stages.length + 1} className="p-3 font-semibold">
                 स्टेज
-              </th>
-              <th colSpan={3} className="p-3 font-semibold">
-                अपराध
               </th>
             </tr>
             <tr className="bg-gray-100 text-gray-700">
-              <th>खात्मा</th>
-              <th>खारजी</th>
-              <th>चालान तैयार</th>
-              <th>चालान पेश</th>
-              <th>विवेचना</th>
+              {stages.map((stage) => (
+                <th key={stage.name}>{stage.name}</th>
+              ))}
               <th className="p-2 font-bold">कुल योग</th>
-              <th>Yellow Line</th>
-              <th>Red Line</th>
-              <th>Chalaan Taiyaar Red Line</th>
             </tr>
           </thead>
           <tbody>
             {thanaData.map((data, index) => (
               <tr key={data.thana} className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-gray-100 transition`}>
                 <td className="p-3 text-center font-semibold">{data.thana}</td>
-                <td>{data.khatma || "-"}</td>
-                <td>{data.kharji || "-"}</td>
-                <td>{data.chalanTaiyar || "-"}</td>
-                <td>{data.chalanPesh || "-"}</td>
-                <td>{data.vivechna || "-"}</td>
+                {stages.map((stage) => (
+                  <td key={stage.name} className="text-center">
+                    {data[stage.name] || "-"}
+                  </td>
+                ))}
                 <td className="p-3 text-center font-bold bg-gray-100">{data.kulYog || "-"}</td>
-                <td>{data.yellowLine || "-"}</td>
-                <td>{data.redLine || "-"}</td>
-                <td>{data.chalanTaiyarRedLine || "-"}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="bg-gray-200 font-semibold">
-              <td>{totals.thana}</td>
-              <td>{totals.khatma || "-"}</td>
-              <td>{totals.kharji || "-"}</td>
-              <td>{totals.chalanTaiyar || "-"}</td>
-              <td>{totals.chalanPesh || "-"}</td>
-              <td>{totals.vivechna || "-"}</td>
+              <td className="text-center">{totals.thana}</td>
+              {stages.map((stage) => (
+                <td key={stage.name} className="text-center">
+                  {totals[stage.name] || "-"}
+                </td>
+              ))}
               <td className="p-3 text-center bg-gray-100">{totals.kulYog || "-"}</td>
-              <td>{totals.yellowLine || "-"}</td>
-              <td>{totals.redLine || "-"}</td>
-              <td>{totals.chalanTaiyarRedLine || "-"}</td>
             </tr>
           </tfoot>
         </table>

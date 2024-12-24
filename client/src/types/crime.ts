@@ -25,9 +25,15 @@ export interface Crime {
   crimeNumber: string;
 }
 
+export interface Stage {
+  name: string;
+}
+
 export interface CrimeState {
   crimeList: Crime[];
+  stages: Stage[];
   loading: boolean;
   error: string | null;
   fetchCrimeList: () => Promise<void>;
+  fetchStages: () => Promise<void>;
 }

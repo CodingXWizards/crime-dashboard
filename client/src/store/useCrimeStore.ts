@@ -1,5 +1,6 @@
 import { config } from "@/constants/env";
 import { Crime, CrimeState } from "@/types/crime";
+import { getData } from "@/utils/helper";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
@@ -10,6 +11,7 @@ const useCrimeStore = create<CrimeState>()(
   devtools(
     (set) => ({
       crimeList: [],
+      stages: [],
       loading: false,
       error: null,
       fetchCrimeList: async () => {
@@ -20,14 +22,21 @@ const useCrimeStore = create<CrimeState>()(
             throw new Error("Failed to fetch crime list");
           }
           const data: Crime[] = await response.json();
-          set({ crimeList: data, loading: false });
+
+          const stages = await getData("stage");
+
+          set({
+            crimeList: data,
+            stages: stages.result.map((stage: { label: string }) => ({ name: stage.label })),
+            loading: false,
+          });
         } catch (error: any) {
           set({ error: (error as Error).message, loading: false });
         }
       },
     }),
-    { name: "CrimeStore" },
-  ),
+    { name: "CrimeStore" }
+  )
 );
 
 export default useCrimeStore;
