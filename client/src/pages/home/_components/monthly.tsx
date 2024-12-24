@@ -12,11 +12,11 @@ interface CrimeData {
 export const Monthly = () => {
   const [crimeData, setCrimeData] = useState<CrimeData[]>([]);
 
-  const [thanaList, setThanaList] = useState<string[]>([]);
+  const [districtList, setDistrictList] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      setThanaList((await getData("thana")).result.map((r) => r.label));
+      setDistrictList((await getData("thana")).result.map((r) => r.label));
     };
     fetchData();
   }, []);
@@ -37,13 +37,13 @@ export const Monthly = () => {
 
           if (existingEntry) {
             // If an entry exists for the same month and week, add the thana crime count
-            existingEntry[item.thana] = item.crimecount;
+            existingEntry[item.district] = item.crimecount;
           } else {
             // Create a new entry if no matching month/week combination exists
             consolidatedData.push({
               monthNumber: item.monthnumber,
               weekNumber: item.weeknumber,
-              [item.thana]: item.crimecount,
+              [item.district]: item.crimecount,
             });
           }
         });
@@ -68,10 +68,10 @@ export const Monthly = () => {
             <tr className="bg-gray-200">
               <th rowSpan={2}>Crime Month</th>
               <th rowSpan={2}>Crime Week</th>
-              <th colSpan={thanaList.length + 1}>Thana</th>
+              <th colSpan={districtList.length + 1}>Thana</th>
             </tr>
             <tr className="bg-gray-100">
-              {thanaList.map((thana) => (
+              {districtList.map((thana) => (
                 <th
                   key={thana}
                   className="px-4 py-2 border border-gray-300 text-center"
@@ -91,7 +91,7 @@ export const Monthly = () => {
                 <td className="bg-gray-100 font-semibold px-4 py-2 border border-gray-300">
                   {row.weekNumber}
                 </td>
-                {thanaList.map((thana) => (
+                {districtList.map((thana) => (
                   <td
                     key={`${index}-${thana}`}
                     className="px-4 py-2 border border-gray-300 text-center"
@@ -100,17 +100,17 @@ export const Monthly = () => {
                   </td>
                 ))}
                 <td className="font-semibold bg-gray-100">
-                  {thanaList.reduce((sum, thana) => sum + (row[thana] || 0), 0)}
+                  {districtList.reduce((sum, thana) => sum + (row[thana] || 0), 0)}
                 </td>
               </tr>
             ))}
             <tr className="bg-gray-200 font-semibold">
               <td colSpan={2}>कुल योग</td>
-              {thanaList.map((thana) => (
+              {districtList.map((thana) => (
                 <td>{crimeData.reduce((sum, d) => sum + (d[thana] || 0), 0)}</td>
               ))}
               <td>
-                {thanaList.reduce(
+                {districtList.reduce(
                   (wholeSum, thana) =>
                     wholeSum +
                     crimeData.reduce((sum, row) => sum + (row[thana] || 0), 0),
